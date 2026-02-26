@@ -56,6 +56,13 @@ function getFormData() {
  * @returns {String} 包含成功或失敗訊息的 JSON 字串。
  */
 function postRegistration(formData) {
+  const lock = LockService.getScriptLock();
+  // 嘗試鎖定 15 秒，若失敗則回傳系統忙碌訊息
+  if (!lock.tryLock(15000)) {
+    Logger.log('Could not obtain lock after 15 seconds.');
+    return JSON.stringify({ success: false, message: '系統忙碌中，請稍後再試。' });
+  }
+
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sessionSheet = ss.getSheetByName('Sessions');
@@ -89,12 +96,20 @@ function postRegistration(formData) {
       throw new Error('無法在 Sessions 表中定位到該場次。');
     }
 
-    // 更新已報名人數 (欄位 E, 索引 4)
+    // 在鎖定狀態下，重新讀取最新人數並執行更新，防止 race condition
+    const totalSlots = sessionSheet.getRange(originalRowIndex, 4).getValue(); // 總名額在 D 欄
     const currentRegistrants = sessionSheet.getRange(originalRowIndex, 5).getValue();
-    sessionSheet.getRange(originalRowIndex, 5).setValue(currentRegistrants + 1);
+    const participants = parseInt(formData.participants, 10) || 1; // 從前端取得報名人數，預設為 1
+
+    if (currentRegistrants + participants > totalSlots) {
+      throw new Error(`報名失敗，剩餘名額不足！(目前剩餘 ${totalSlots - currentRegistrants} 位)`);
+    }
+
+    // 更新已報名人數
+    sessionSheet.getRange(originalRowIndex, 5).setValue(currentRegistrants + participants);
 
     // 將報名資料寫入 Registration 表
-    const newRegistrationRow = [new Date(), selectedSession[0], selectedSession[2], formData.name, formData.phone, 1, formData.level, '']; // 人數暫時寫死為 1
+    const newRegistrationRow = [new Date(), selectedSession[0], selectedSession[2], formData.name, formData.phone, participants, formData.level, formData.notes || ''];
     registrationSheet.appendRow(newRegistrationRow);
 
     return JSON.stringify({ success: true, message: '報名成功！' });
@@ -102,5 +117,7 @@ function postRegistration(formData) {
   } catch (error) {
     Logger.log(`Error in postRegistration: ${error.toString()}`);
     return JSON.stringify({ success: false, message: error.toString() });
+  } finally {
+    lock.releaseLock(); // 無論成功或失敗，最後都釋放鎖
   }
 }
