@@ -1,23 +1,30 @@
 # 實作開發進度
 
+## 協作與佈署流程 (Workflow)
+我們採用 **Local-First** 開發模式，由 AI 協助撰寫本地檔案，再由開發者推送至 GAS。
+1. **AI 開發**: Gemini 提供 `Code.gs` 或 `index.html` 的程式碼變更 (Diff)。
+2. **本地更新**: 開發者確認並套用變更至本地檔案。
+3. **手動推送**: 開發者在終端機執行 `clasp push` 將程式碼同步至 Google Apps Script 專案。
+4. **線上測試**: 開發者開啟 GAS 部署連結進行測試。
+
 ## Phase 1: 後端基礎與資料表架構 (The Foundation)
 建立穩定且具彈性的 Google Sheets 資料結構，確保 GAS 能正確讀取配置。
-- [ ] Google Sheet 設定:
+- [x] Google Sheet 設定:
     - [x] 建立 `Registration` 表（含固定欄位：時間戳記、場次、時段、姓名、電話、人數、程度、備註）。
     - [x] 建立 `Sessions` 表（欄位：場次名稱、日期、時段、總名額、已報名人數、狀態）。
     - [x] 建立 `Config` 表（預計放入：聯絡窗口、繳費資訊、額外動態欄位定義）。
 - [ ] GAS 核心開發 (`Code.gs`):
-    - [ ] 實作 `getFormData()`：抓取 `Sessions` 中所有「啟用」的場次，並合併 `Config` 的動態資訊。
-    - [ ] 實作 `postRegistration()`：處理前端 POST 請求，將資料寫入    `Registration` 並即時更新 `Sessions` 內的已報名人數。
-    - [ ] **Vibe Check**: 確認按鈕點擊時是否有縮放 (Scale) 的物理回饋感。
+    - [x] 實作 `getFormData()`：抓取 `Sessions` 中所有「啟用」的場次，並合併 `Config` 的動態資訊。
+    - [x] 實作 `postRegistration()`：處理前端 POST 請求，將資料寫入 `Registration` 並即時更新 `Sessions` 內的已報名人數。
+    - [x] **Vibe Check**: 確認按鈕點擊時是否有縮放 (Scale) 的物理回饋感。
 
 ## Phase 2: 動態 UI 與 運動風設計 (The Interface)
 實作具備「螢光綠/深藍黑」競技感的極簡前端，並達成3秒報名體驗。
 - [ ] 基礎佈局:
-    - [ ] 導入 Tailwind CSS 並設定 #0f172a 背景與 #d9f99d 主色。
-    - [ ] 實作響應式容器，確保手機操作具有「快、狠、準」的點擊感。
+    - [x] 導入 Tailwind CSS 並設定 #0f172a 背景與 #d9f99d 主色。
+    - [x] 實作響應式容器，確保手機操作具有「快、狠、準」的點擊感。
 - [ ] 動態表單渲染:
-    - [ ] 實作 JS 邏輯：從後端 API 獲取場次後，自動生成「場次」與「時段」的連動下拉選單。
+    - [x] 實作 JS 邏輯：從後端 API 獲取場次後，自動生成「場次」與「時段」的連動下拉選單。
     - [ ] 根據 `Config` 表內容，動態在備註欄上方插入「聯絡窗口」或「繳費資訊」顯示文字。
 - [ ] 名額即時顯示:
     - [ ] 在場次選單旁顯示「8/12 人」狀態，若額滿自動切換為「候補中」樣式。
