@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+// 定義試算表 ID (確保 Web App 能準確找到檔案)
+const SPREADSHEET_ID = '1aXDAe4ix-4gpk5IPGTrS97C_gTFKUvBx75hdZ9wqh7Y';
+
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('index.html')
     .setTitle('羽球流光 (Badminton Flow) 報名系統')
@@ -27,21 +30,28 @@ function doGet(e) {
  */
 function getFormData() {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sessionSheet = ss.getSheetByName('Sessions');
     const configSheet = ss.getSheetByName('Config');
+
+    if (!sessionSheet) {
+      return JSON.stringify({ error: "找不到 'Sessions' 工作表，請確認 Google Sheet 分頁名稱。" });
+    }
 
     // 取得 Sessions 資料，並過濾出 "啟用" 狀態的場次
     const sessionsData = sessionSheet.getDataRange().getValues();
     const sessionHeaders = sessionsData.shift(); // 移除標題列
     const enabledSessions = sessionsData.filter(row => {
-      const status = String(row[5]).trim().toLowerCase();
-      return status === '啟用' || status === 'enabled' || status === 'on';
+      const status = String(row[5] || '').trim().toLowerCase();
+      return status === '啟用' || status === 'enabled' || status === 'on' || status === 'open';
     });
 
     // 取得 Config 資料
-    const configData = configSheet.getDataRange().getValues();
-    configData.shift(); // 移除標題列
+    let configData = [];
+    if (configSheet) {
+      configData = configSheet.getDataRange().getValues();
+      configData.shift(); // 移除標題列
+    }
 
     return JSON.stringify({
       sessions: enabledSessions,
@@ -67,7 +77,7 @@ function postRegistration(formData) {
   }
 
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sessionSheet = ss.getSheetByName('Sessions');
     const registrationSheet = ss.getSheetByName('Registration');
 

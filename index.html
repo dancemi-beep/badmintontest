@@ -146,6 +146,13 @@
 
       function renderForm(jsonString) {
         const data = JSON.parse(jsonString);
+        
+        if (data.error) {
+          alert('系統錯誤: ' + data.error);
+          document.getElementById('loading').textContent = '載入失敗: ' + data.error;
+          return;
+        }
+
         sessionsData = data.sessions || [];
         configData = data.config || [];
 
@@ -157,20 +164,25 @@
 
         // 填入場次選單
         const select = document.getElementById('sessionSelect');
-        select.innerHTML = '<option value="" disabled selected>請選擇場次</option>';
         
-        sessionsData.forEach((session, index) => {
-          // session: [Name, Date, Time, Total, Registered, Status]
-          // 格式化日期
-          const date = new Date(session[1]);
-          const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-          const optionText = `${session[0]} | ${dateStr} ${session[2]}`;
+        if (sessionsData.length === 0) {
+          select.innerHTML = '<option value="" disabled selected>目前無開放場次 (請檢查後台狀態)</option>';
+        } else {
+          select.innerHTML = '<option value="" disabled selected>請選擇場次</option>';
           
-          const option = document.createElement('option');
-          option.value = index;
-          option.textContent = optionText;
-          select.appendChild(option);
-        });
+          sessionsData.forEach((session, index) => {
+            // session: [Name, Date, Time, Total, Registered, Status]
+            // 格式化日期
+            const date = new Date(session[1]);
+            const dateStr = !isNaN(date.getTime()) ? `${date.getMonth() + 1}/${date.getDate()}` : session[1];
+            const optionText = `${session[0]} | ${dateStr} ${session[2]}`;
+            
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = optionText;
+            select.appendChild(option);
+          });
+        }
 
         // 顯示表單，隱藏 Loading
         document.getElementById('loading').classList.add('hidden');
