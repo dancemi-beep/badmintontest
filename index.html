@@ -95,6 +95,10 @@
               <span class="text-slate-400">剩餘名額:</span>
               <span id="infoSlots" class="text-white font-mono font-bold"></span>
             </div>
+            <!-- 名額進度條 -->
+            <div class="w-full bg-slate-700 rounded-full h-1.5 mt-2 overflow-hidden">
+              <div id="progressBar" class="bg-lime-400 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
           </div>
 
           <!-- 人數 & 備註 -->
@@ -203,6 +207,17 @@
         const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
         document.getElementById('infoTime').textContent = `${dateStr} ${session[2]}`;
         document.getElementById('infoSlots').textContent = `${registered} / ${total} (剩 ${remaining})`;
+        
+        // 更新進度條邏輯
+        const percentage = Math.min(100, (registered / total) * 100);
+        const bar = document.getElementById('progressBar');
+        bar.style.width = `${percentage}%`;
+        
+        // 顏色隨人數增加變化：<50% 綠色, 50-80% 黃色, >80% 紅色
+        bar.classList.remove('bg-lime-400', 'bg-yellow-400', 'bg-red-500');
+        if (percentage >= 80) bar.classList.add('bg-red-500');
+        else if (percentage >= 50) bar.classList.add('bg-yellow-400');
+        else bar.classList.add('bg-lime-400');
         
         document.getElementById('sessionInfo').classList.remove('hidden');
       }
