@@ -13,6 +13,18 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
       }
+      
+      /* 羽毛球飛行動畫 */
+      .shuttlecock-fly {
+        animation: flyAcross 1.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+        display: block !important;
+      }
+      
+      @keyframes flyAcross {
+        0% { transform: translate(-100px, 100px) rotate(-45deg) scale(0.5); opacity: 0; }
+        10% { opacity: 1; }
+        100% { transform: translate(120vw, -400px) rotate(45deg) scale(1.5); opacity: 1; }
+      }
     </style>
   </head>
   <body class="bg-slate-900 text-slate-50 min-h-screen flex flex-col items-center justify-center p-4 font-sans selection:bg-lime-400 selection:text-slate-900">
@@ -67,7 +79,7 @@
 
           <!-- 場次選擇 (動態生成) -->
           <div class="space-y-1">
-            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">選擇場次</label>
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">選擇場次 (日期 | 時段)</label>
             <select id="sessionSelect" name="sessionIndex" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 text-slate-300" onchange="updateSessionDetails()">
               <option value="" disabled selected>載入中...</option>
             </select>
@@ -116,6 +128,9 @@
         <p id="contactInfo" class="text-xs text-slate-500"></p>
       </div>
     </div>
+
+    <!-- 動畫元素：羽毛球 (預設隱藏) -->
+    <div id="shuttlecock" class="fixed bottom-0 left-0 text-6xl pointer-events-none z-50 hidden" aria-hidden="true">🏸</div>
 
     <script>
       let sessionsData = [];
@@ -171,7 +186,10 @@
         const registered = session[4];
         const remaining = total - registered;
 
-        document.getElementById('infoTime').textContent = session[2];
+        // 顯示日期與時間
+        const date = new Date(session[1]);
+        const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+        document.getElementById('infoTime').textContent = `${dateStr} ${session[2]}`;
         document.getElementById('infoSlots').textContent = `${registered} / ${total} (剩 ${remaining})`;
         
         document.getElementById('sessionInfo').classList.remove('hidden');
@@ -196,6 +214,7 @@
             const res = JSON.parse(response);
             if (res.success) {
               alert('🎉 ' + res.message);
+              playAnimation(); // 觸發動畫
               form.reset();
               document.getElementById('sessionInfo').classList.add('hidden');
               // 重新載入資料以更新名額
@@ -215,6 +234,15 @@
             btn.classList.remove('opacity-75', 'cursor-not-allowed');
           })
           .postRegistration(formData);
+      }
+
+      function playAnimation() {
+        const el = document.getElementById('shuttlecock');
+        el.classList.add('shuttlecock-fly');
+        // 動畫結束後重置
+        setTimeout(() => {
+          el.classList.remove('shuttlecock-fly');
+        }, 1500);
       }
     </script>
   </body>

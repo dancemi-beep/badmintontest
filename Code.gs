@@ -34,7 +34,10 @@ function getFormData() {
     // 取得 Sessions 資料，並過濾出 "啟用" 狀態的場次
     const sessionsData = sessionSheet.getDataRange().getValues();
     const sessionHeaders = sessionsData.shift(); // 移除標題列
-    const enabledSessions = sessionsData.filter(row => row[5] === '啟用'); // 假設 "狀態" 在第 6 欄 (索引 5)
+    const enabledSessions = sessionsData.filter(row => {
+      const status = String(row[5]).trim().toLowerCase();
+      return status === '啟用' || status === 'enabled' || status === 'on';
+    });
 
     // 取得 Config 資料
     const configData = configSheet.getDataRange().getValues();
@@ -72,7 +75,10 @@ function postRegistration(formData) {
     const allSessionsData = sessionSheet.getDataRange().getValues();
     const sessionsDataRows = allSessionsData.slice(1); // 取得資料列
 
-    const enabledSessions = sessionsDataRows.filter(row => row[5] === '啟用');
+    const enabledSessions = sessionsDataRows.filter(row => {
+      const status = String(row[5]).trim().toLowerCase();
+      return status === '啟用' || status === 'enabled' || status === 'on';
+    });
     
     // 從前端傳來的 index 找到對應的場次資料
     const selectedSession = enabledSessions[formData.sessionIndex];
