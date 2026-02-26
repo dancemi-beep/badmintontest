@@ -3,9 +3,9 @@
 ## Phase 1: 後端基礎與資料表架構 (The Foundation)
 建立穩定且具彈性的 Google Sheets 資料結構，確保 GAS 能正確讀取配置。
 - [ ] Google Sheet 設定:
-    - [ ] 建立 `Registration` 表（含固定欄位：時間戳記、場次、時段、姓名、電話、人數、程度、備註）。
-    - [ ] 建立 `Sessions` 表（欄位：場次名稱、日期、時段、總名額、已報名人數、狀態）。
-    - [ ] 建立 `Config` 表（預計放入：聯絡窗口、繳費資訊、額外動態欄位定義）。
+    - [x] 建立 `Registration` 表（含固定欄位：時間戳記、場次、時段、姓名、電話、人數、程度、備註）。
+    - [x] 建立 `Sessions` 表（欄位：場次名稱、日期、時段、總名額、已報名人數、狀態）。
+    - [x] 建立 `Config` 表（預計放入：聯絡窗口、繳費資訊、額外動態欄位定義）。
 - [ ] GAS 核心開發 (`Code.gs`):
     - [ ] 實作 `getFormData()`：抓取 `Sessions` 中所有「啟用」的場次，並合併 `Config` 的動態資訊。
     - [ ] 實作 `postRegistration()`：處理前端 POST 請求，將資料寫入    `Registration` 並即時更新 `Sessions` 內的已報名人數。
