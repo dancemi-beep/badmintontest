@@ -5,11 +5,217 @@
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      /* Additional styles can go here */
+      /* 自定義樣式：隱藏捲軸但保留功能 */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     </style>
   </head>
-  <body>
-    <h1>羽球流光 (Badminton Flow) 報名系統</h1>
-    <p>正在載入設定...</p>
+  <body class="bg-slate-900 text-slate-50 min-h-screen flex flex-col items-center justify-center p-4 font-sans selection:bg-lime-400 selection:text-slate-900">
+    
+    <!-- 主容器 -->
+    <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-700 transition-all duration-300 hover:shadow-lime-900/20">
+      
+      <!-- Header -->
+      <div class="bg-slate-900 p-6 border-b border-slate-700 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-lime-400 rounded-full blur-3xl opacity-20"></div>
+        <h1 class="text-2xl font-bold text-center text-lime-400 tracking-wider italic transform -skew-x-6">BADMINTON FLOW</h1>
+        <p class="text-center text-slate-400 text-xs mt-1 tracking-widest uppercase">羽球流光報名系統</p>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-10">
+          <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-lime-400 mx-auto mb-4"></div>
+          <p class="text-slate-400 text-sm animate-pulse">正在載入最新場次...</p>
+        </div>
+
+        <!-- Form -->
+        <form id="registrationForm" class="hidden space-y-5" onsubmit="handleSubmit(event)">
+          
+          <!-- 姓名 & 電話 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">姓名</label>
+              <input type="text" name="name" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors" placeholder="您的稱呼">
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">電話/Line</label>
+              <input type="text" name="phone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors" placeholder="聯絡方式">
+            </div>
+          </div>
+
+          <!-- 程度 -->
+          <div class="space-y-1">
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">程度</label>
+            <select name="level" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 text-slate-300">
+              <option value="" disabled selected>請選擇程度</option>
+              <option value="新手">新手 (剛接觸)</option>
+              <option value="初級">初級 (懂規則/可來回)</option>
+              <option value="中下">中下 (基本球路/跑位)</option>
+              <option value="中級">中級 (穩定性高/戰術)</option>
+              <option value="中上">中上 (競技水平)</option>
+              <option value="高級">高級 (校隊/教練)</option>
+            </select>
+          </div>
+
+          <!-- 場次選擇 (動態生成) -->
+          <div class="space-y-1">
+            <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">選擇場次</label>
+            <select id="sessionSelect" name="sessionIndex" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 text-slate-300" onchange="updateSessionDetails()">
+              <option value="" disabled selected>載入中...</option>
+            </select>
+          </div>
+
+          <!-- 場次資訊顯示區 -->
+          <div id="sessionInfo" class="hidden bg-slate-900/50 rounded-lg p-3 border border-slate-700 text-xs space-y-1">
+            <div class="flex justify-between">
+              <span class="text-slate-400">日期時間:</span>
+              <span id="infoTime" class="text-lime-400 font-mono"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">剩餘名額:</span>
+              <span id="infoSlots" class="text-white font-mono font-bold"></span>
+            </div>
+          </div>
+
+          <!-- 人數 & 備註 -->
+          <div class="grid grid-cols-3 gap-4">
+            <div class="col-span-1 space-y-1">
+              <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">人數</label>
+              <select name="participants" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 text-slate-300">
+                <option value="1">1 位</option>
+                <option value="2">2 位</option>
+                <option value="3">3 位</option>
+                <option value="4">4 位</option>
+                <option value="5">5 位</option>
+              </select>
+            </div>
+            <div class="col-span-2 space-y-1">
+              <label class="text-xs text-slate-400 font-bold uppercase tracking-wider">備註</label>
+              <input type="text" name="notes" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-lime-400 transition-colors" placeholder="選填">
+            </div>
+          </div>
+
+          <!-- 提交按鈕 -->
+          <button type="submit" id="submitBtn" class="w-full bg-lime-400 hover:bg-lime-300 text-slate-900 font-bold py-3 rounded-lg shadow-lg shadow-lime-400/20 active:scale-95 transition-all duration-200 mt-4 uppercase tracking-widest">
+            確認報名
+          </button>
+
+        </form>
+      </div>
+      
+      <!-- Footer Info -->
+      <div class="bg-slate-900 p-4 border-t border-slate-700 text-center">
+        <p id="contactInfo" class="text-xs text-slate-500"></p>
+      </div>
+    </div>
+
+    <script>
+      let sessionsData = [];
+      let configData = [];
+
+      // 初始化：載入資料
+      window.onload = function() {
+        google.script.run
+          .withSuccessHandler(renderForm)
+          .withFailureHandler(error => alert('載入失敗: ' + error))
+          .getFormData();
+      };
+
+      function renderForm(jsonString) {
+        const data = JSON.parse(jsonString);
+        sessionsData = data.sessions || [];
+        configData = data.config || [];
+
+        // 填入 Config 資訊 (例如聯絡人)
+        const contact = configData.find(row => row[0] === 'contact_person');
+        if (contact) {
+          document.getElementById('contactInfo').textContent = contact[2];
+        }
+
+        // 填入場次選單
+        const select = document.getElementById('sessionSelect');
+        select.innerHTML = '<option value="" disabled selected>請選擇場次</option>';
+        
+        sessionsData.forEach((session, index) => {
+          // session: [Name, Date, Time, Total, Registered, Status]
+          // 格式化日期
+          const date = new Date(session[1]);
+          const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+          const optionText = `${session[0]} | ${dateStr} ${session[2]}`;
+          
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = optionText;
+          select.appendChild(option);
+        });
+
+        // 顯示表單，隱藏 Loading
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('registrationForm').classList.remove('hidden');
+      }
+
+      function updateSessionDetails() {
+        const index = document.getElementById('sessionSelect').value;
+        if (index === "") return;
+
+        const session = sessionsData[index];
+        const total = session[3];
+        const registered = session[4];
+        const remaining = total - registered;
+
+        document.getElementById('infoTime').textContent = session[2];
+        document.getElementById('infoSlots').textContent = `${registered} / ${total} (剩 ${remaining})`;
+        
+        document.getElementById('sessionInfo').classList.remove('hidden');
+      }
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const originalText = btn.textContent;
+        
+        // Loading 狀態
+        btn.disabled = true;
+        btn.textContent = '處理中...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        const form = document.getElementById('registrationForm');
+        const formData = {};
+        new FormData(form).forEach((value, key) => formData[key] = value);
+
+        google.script.run
+          .withSuccessHandler(response => {
+            const res = JSON.parse(response);
+            if (res.success) {
+              alert('🎉 ' + res.message);
+              form.reset();
+              document.getElementById('sessionInfo').classList.add('hidden');
+              // 重新載入資料以更新名額
+              google.script.run.withSuccessHandler(renderForm).getFormData();
+            } else {
+              alert('❌ ' + res.message);
+            }
+            // 恢復按鈕
+            btn.disabled = false;
+            btn.textContent = originalText;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+          })
+          .withFailureHandler(err => {
+            alert('系統錯誤: ' + err);
+            btn.disabled = false;
+            btn.textContent = originalText;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+          })
+          .postRegistration(formData);
+      }
+    </script>
   </body>
 </html>
